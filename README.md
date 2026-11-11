@@ -176,5 +176,4 @@ These settings are stored per player and persist across relogs and server restar
 - `src/test`: unit tests as portable gameplay logic is implemented
 
 The original datapack is retained in the workspace under `datapack-to-port` as a behavior reference; it is not included in the mod jar.
-#   e a s y s u r v i v e p a c k  
- 
+#
