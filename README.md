@@ -1,54 +1,46 @@
-# Easy Survival Pack Fabric Mod
+# Easy Survival Pack
 
-Fabric mod project targeting Minecraft 26.3.
+Server-authoritative Fabric mod porting survival mechanics from the Easy Survival Pack datapack.
 
-Gameplay logic runs authoritatively on the server. For a dedicated server, install the mod on the server only. For a single-player world opened to LAN, the host must run Fabric with this mod; friends can join with vanilla clients and do not need to install it. Author: Akira Hashimoto.
+![Mod version](https://img.shields.io/badge/version-0.1.0-blue)
+![Minecraft](https://img.shields.io/badge/Minecraft-26.3-brightgreen)
+![Fabric](https://img.shields.io/badge/loader-Fabric-orange)
+![Project status](https://img.shields.io/badge/status-in%20development-yellow)
 
-## Requirements
+## Project status
 
-- JDK 25
-- Internet access for the first Gradle build
+| | |
+|---|---|
+| Mod version | `0.1.0` |
+| Minecraft | `26.3` |
+| Fabric Loader | `0.20.1` |
+| Fabric API used for builds | `0.166.0+26.3` |
+| Java | `25` |
+| Release status | In development; no version tags have been published |
 
-The Gradle wrapper downloads the configured Gradle version automatically. A separate Gradle installation is not required.
+This is an ongoing port, not a feature-complete replacement for the datapack. The version is set in `gradle.properties`. When a release is published, its version should match that value.
 
-## Build
+## Features
 
-From this directory, run:
+### Emergency Heal
 
-```powershell
-.\gradlew.bat build
-```
-
-Gradle's jar is created in `build\libs`, and `build` also stages a versioned copy in this project’s `dist` directory:
-
-```text
-mod\dist\EasySurvivalPack-0.1.0+mc26.3.jar
-```
-
-You can run `.\gradlew.bat dist` to stage the jar without running the full verification lifecycle.
-
-On Windows, double-click `build-mod.bat` to build and keep the result window open. Pass `--no-pause` when running it from a script or terminal that should return immediately.
-
-## Emergency Heal commands
-
-The following commands require the Minecraft Game Master permission (cheats/OP):
+Automatically restores a configured percentage of max health when triggered. Game Masters can configure the heal amount and cooldown per player:
 
 ```text
 /emergencyhealhp <targets> <percent>
 /emergencyhealcd <targets> <seconds>
 ```
 
-- `targets` accepts a player name or selector such as `@a`.
-- `percent` is the max-health percentage restored when Emergency Heal triggers (0–100; default 25). Set it to `0` to disable Emergency Heal; its cooldown is cleared and no longer ticks.
-- `seconds` is the cooldown applied after a trigger (minimum 0; default 30). Set it to `0` to disable cooldown.
-- Settings are stored per player and persist across relogs and server restarts. Changing the cooldown caps the active cooldown at the new duration: it shortens a longer remaining cooldown, but never extends one that is already shorter.
-- The action bar clears immediately when cooldown ends or after respawn; no extra cooldown time is added.
+- `percent` is 0-100; default is 25. Setting it to `0` disables Emergency Heal and clears its cooldown.
+- `seconds` is the cooldown after a trigger; default is 30. Setting it to `0` disables the cooldown.
+- Settings persist across relogs and server restarts. Reducing the configured cooldown also caps a longer active cooldown.
+- The action bar clears when the cooldown ends or after respawn.
 
-## Out-of-combat recovery
+### Out-of-combat recovery
 
-After damage dealt to or received from an entity, health recovery waits for the combat delay (8 seconds by default). Environmental damage uses its own delay (3 seconds by default). A combat timer takes priority and clears/overrides the environmental timer; otherwise the environmental timer applies. Food and saturation are kept full whenever the combat timer has ended, including during the environmental recovery delay. Health recovery waits for both timers to end, then heals at the configured percentage of max health per second, rounded up to a whole health point. Vanilla natural regeneration (1 health per second in Minecraft 26.3 when enabled) counts toward that total; the mod only adds the remaining amount.
+Health recovery waits for the combat delay (8 seconds by default) and environmental damage delay (3 seconds by default). A combat timer takes priority over the environmental timer. After both delays end, health regenerates at the configured percentage of max health per second, rounded up to a whole health point. Vanilla natural regeneration counts toward that total; the mod adds only the remaining amount. Food and saturation are kept full after the combat timer ends.
 
-The following commands require the Minecraft Game Master permission (cheats/OP) and configure selected players individually:
+Game Masters can configure each player's delays and recovery rate:
 
 ```text
 /recoverycombat <targets> <seconds>
@@ -57,13 +49,12 @@ The following commands require the Minecraft Game Master permission (cheats/OP) 
 ```
 
 - Delays accept values from 0 seconds upward; `0` disables that delay.
-- Recovery rate accepts 0.5–10% max HP per second, including decimal values.
-- Settings persist across relogs and server restarts.
-- Changing either delay caps its active timer at the new delay: it shortens a longer timer, but does not extend one that is already shorter.
+- Recovery rate accepts 0.5-10% max HP per second.
+- Settings persist across relogs and server restarts. Reducing a configured delay caps a longer active timer.
 
-## Spawn health and protection
+### Max health and respawn protection
 
-The `/sethp` command requires the Minecraft Game Master permission (cheats/OP):
+Game Masters can set a player's maximum health and respawn protection:
 
 ```text
 /sethp <targets> <amount> heart
@@ -72,27 +63,28 @@ The `/sethp` command requires the Minecraft Game Master permission (cheats/OP):
 ```
 
 - `heart` converts hearts to health points (`1 heart = 2 HP`); `hp` uses health points directly.
-- The Minecraft 26.3 max-health attribute supports 1–1024 HP (1–512 hearts).
-- New players default to 20 hearts (40 HP). Max health is stored per player, restored when they rejoin, and reapplied after death. Respawning restores the player's health to their configured maximum.
-- Respawn protection lasts 5 seconds by default and cancels incoming damage without applying a Resistance effect. Dealing damage to another entity immediately ends the attacker's protection.
-- `/spawnprotection` sets each selected player's respawn protection duration in seconds; `0` disables it. The configured duration applies on their next respawn and persists across relogs/restarts.
-- Changing the configured duration also caps protection that is already active: it shortens a longer remaining timer but does not extend a shorter one.
+- Max health supports 1-1024 HP (1-512 hearts). New players default to 20 hearts (40 HP).
+- Max health is stored per player, restored on rejoin and reapplied after death. Respawning restores health to the configured maximum.
+- Respawn protection lasts 5 seconds by default and cancels incoming damage without applying a Resistance effect. Attacking another entity ends the attacker's protection.
+- `/spawnprotection` sets the duration for the player's next respawn; `0` disables it. The setting persists and also caps longer active protection.
 
-## Low HP Defense
+### Low HP Defense
 
-Resistance is automatically applied according to current health as a fraction of max health:
+Resistance is applied automatically based on current health as a fraction of max health:
 
-- At or below 50%: Resistance I (20% damage reduction).
-- At or below 25%: Resistance II (40% damage reduction).
-- At or below 12.5%: Resistance III (60% damage reduction).
+| Health threshold | Effect |
+|---|---|
+| At or below 50% | Resistance I (20% damage reduction) |
+| At or below 25% | Resistance II (40% damage reduction) |
+| At or below 12.5% | Resistance III (60% damage reduction) |
 
-Mod-managed Resistance has an infinite displayed duration and is removed or changed by the mod as health thresholds change. An externally applied Resistance of equal or higher level takes priority and keeps its normal duration. A weaker external Resistance hidden by Low HP Defense has its remaining duration tracked and is restored when no longer overridden. Clearing effects also clears any hidden external Resistance. Respawn protection takes priority. Low HP Defense is automatic and has no tuning command.
+Mod-managed Resistance has an infinite displayed duration and changes with the health thresholds. An external Resistance effect of equal or higher level takes priority and keeps its normal duration. A weaker external effect hidden by Low HP Defense is restored when no longer overridden. Respawn protection takes priority. This feature has no tuning command.
 
-## Infinite Totem
+### Infinite Totem
 
-A Totem of Undying can activate from either hand, the player's inventory, or a carried shulker box. On activation, the selected Totem is replaced by a uniquely marked, glinting Nether Star placeholder; when its cooldown finishes, it becomes a new vanilla Totem. Each placeholder has its own cooldown and owner, so multiple Totems recharge independently. Placeholder items cannot be used in crafting recipes.
+A Totem of Undying can activate from either hand, the player's inventory, or a carried shulker box. On activation, the selected Totem becomes a uniquely marked, glinting Nether Star placeholder. When its cooldown ends, it becomes a new vanilla Totem. Each placeholder has its own cooldown and owner; placeholder items cannot be used in crafting recipes.
 
-The base cooldown is 60 seconds. It runs at these rates:
+The base cooldown is 60 seconds:
 
 | Location and owner state | Cooldown rate |
 |---|---:|
@@ -101,11 +93,21 @@ The base cooldown is 60 seconds. It runs at these rates:
 | Loaded container, owner online | 2x slower |
 | Loaded container, owner offline | 10x slower |
 
-Game Masters can set the per-player base cooldown with `/totemcooldown <targets> <seconds>`. `0` makes used Totems immediately reusable. Changing this setting caps existing Totem cooldowns owned by the selected player at the new duration: longer cooldowns are shortened, while shorter ones stay unchanged. While a cooling placeholder is held in either hand, its remaining time appears in the combined action bar; its tooltip also shows the cooldown when hovered in an inventory. Vanilla clients can display both without a client mod. A placeholder in an Ender Chest or dropped into a loaded world continues recharging, but neither location is searched for a Totem during death protection.
+Game Masters can configure the per-player base cooldown and cooldown multipliers:
 
-Game Masters can set the per-player cooldown multipliers with `/totemfactors <targets> <inventory_online> <inventory_offline> <container_online> <container_offline>`. Each factor is an integer from 1 to 10 and means the cooldown runs that many times slower. Defaults are `1 5 2 10` in that argument order. The selected player's factors are saved into each newly activated Totem placeholder, so changing them affects future activations only. Cooldowns in player inventories and carried shulkers are updated on join, leave, server stop, and while online. Loaded block containers are reconciled periodically and when accessed. Items in unloaded chunks are updated when those chunks load again, so a change between online/offline rates during unload is not accounted for until then and has not been gameplay-verified.
+```text
+/totemcooldown <targets> <seconds>
+/totemfactors <targets> <inventory_online> <inventory_offline> <container_online> <container_offline>
+```
 
-## Infinite Ender Pearl
+- A cooldown of `0` makes used Totems immediately reusable.
+- Each factor is an integer from 1 to 10 and means the cooldown runs that many times slower. Defaults are `1 5 2 10` in argument order.
+- Changing the base cooldown caps longer active cooldowns. Factors are saved into each newly activated Totem, so changes affect future activations only.
+- A held placeholder displays its remaining time in the action bar and tooltip. Vanilla clients can display both without a client mod.
+- Inventory and carried-shulker cooldowns are updated on join, leave, server stop, and while online. Loaded block containers are reconciled periodically and when accessed. Items in unloaded chunks update when those chunks load again.
+- Ender Chests and dropped items continue recharging while loaded, but are not searched for a Totem during death protection.
+
+### Infinite Ender Pearl
 
 Drop the following items together:
 
@@ -115,35 +117,38 @@ Drop the following items together:
 1 Ender Pearl
 ```
 
-All nine items must be dropped by the same player within 5 seconds and within a 2-block radius of the Ender Pearl. The server consumes exactly four diamonds, four gold ingots, and one Ender Pearl; any extra items in those stacks remain. It drops a glinting, marked Infinite Ender Pearl at the crafting spot. Throwing that pearl launches a normal Ender Pearl without consuming the item; vanilla Ender Pearl cooldown behavior is retained.
+All nine items must be dropped by the same player within 5 seconds and within a 2-block radius of the Ender Pearl. The server consumes exactly four diamonds, four gold ingots, and one Ender Pearl; extras in those stacks remain. It drops a glinting, marked Infinite Ender Pearl at the crafting spot. Throwing it launches a normal Ender Pearl without consuming the item and retains vanilla Ender Pearl cooldown behavior.
 
-This is processed by the game server, whether it is dedicated or integrated. In a LAN world the host must run Fabric with this mod, but connected friends can use vanilla clients without installing it.
+### Infinite Firework
 
-## Infinite Firework
+Drop one Firework Rocket and one End Crystal together. The same player must drop both within 5 seconds and within a 2-block radius of the rocket. The server consumes exactly one rocket and one crystal; extras remain.
 
-Drop one Firework Rocket and one End Crystal together. Both items must be dropped by the same player within 5 seconds and within a 2-block radius of the rocket. The server consumes exactly one rocket and one crystal; extra items in either stack remain.
+The result preserves the original rocket's flight duration and explosion payload. Use it normally or load and fire it with a crossbow; the rocket is not consumed, and its normal explosion behavior is retained.
 
-The result copies the original rocket's Fireworks component, preserving its flight duration and explosion payload, then marks it as infinite. Use it normally or load and fire it with a crossbow; the rocket is not consumed. Crossbow loading, firing, and the rocket's normal explosion behavior are preserved. It remains a vanilla Firework Rocket item, so friends joining a LAN world do not need the mod.
+### Durability repair upgrades
 
-## Durability repair upgrades
+Drop one damageable item and one or more Dragon's Breath together. All dropped items must be from the same player, within 5 seconds and a 2-block radius of the damageable item. Each Dragon's Breath adds one repair level, up to level 5. Only the required amount of Dragon's Breath is consumed; excess remains on the ground. The upgraded item retains its vanilla enchantments and components.
 
-Drop one damageable item and one or more Dragon's Breath together. All dropped items must be from the same player, within 5 seconds and a 2-block radius of the damageable item. Each Dragon's Breath adds one repair level, up to level 5. The server consumes only the number of Dragon's Breath needed for the available levels; excess breath remains on the ground. It returns the original item with its vanilla enchantments and components preserved. An item starts at level 0, and items already at level 5 cannot be upgraded further.
+- Each level restores one durability point per second, up to 5 per second at level 5.
+- Repair waits until the player's 8-second combat recovery delay ends.
+- Pickaxes, axes, shovels, and hoes also wait 5 seconds after their last durability use.
+- Elytra repair at their level rate while flying and at `ceil(level * 1.5)` per second while not flying (8 per second at level 5).
+- Repair applies to upgraded items in equipment, inventory, offhand, Ender Chest, and shulkers carried in those locations.
+- Vanilla enchantments such as Unbreaking and Mending are retained and work normally but do not change the custom repair rate. The level and repair rate appear in the tooltip.
 
-Each repair level restores one durability point per second, up to 5 per second at level 5. All upgraded damageable items wait until the player's 8-second combat recovery delay ends before repairing. Pickaxes, axes, shovels, and hoes also wait 5 seconds after their last durability use. Elytra repair at their level rate while the player is flying; while not flying they repair at `ceil(level × 1.5)` per second (8 per second at level 5). Repair applies to upgraded items in equipment, inventory, offhand, Ender Chest, and shulkers carried in those locations. Vanilla enchantments such as Unbreaking and Mending are retained and work normally but do not change this repair rate. The level and repair rates appear in the item's tooltip.
+### XP loss reduction
 
-## XP loss reduction
+Ordinary gameplay XP deductions are reduced by 80% by default, including XP spent on enchantments and anvils. XP is compared as total XP points derived from the player's level and progress within that level. The removed amount is restored with ceiling rounding.
 
-Ordinary gameplay XP deductions are reduced by 80% by default, including XP spent on enchantments and anvils. XP is compared as total XP points derived from the player's level and progress within that level, matching the datapack's level-to-points calculation. The removed amount is restored with ceiling rounding. Death-related XP loss is excluded, as are direct `/experience set` admin changes.
-
-Game Masters can configure the reduction per selected player:
+Death-related XP loss is excluded, as are direct `/experience set` admin changes. Game Masters can configure the reduction per player:
 
 ```text
 /xploss <targets> <percent>
 ```
 
-The value is 0–100; `0` disables the reduction and `100` refunds the full ordinary gameplay XP deduction. The default is 80%.
+The value is 0-100; `0` disables the reduction and `100` refunds the full ordinary gameplay XP deduction. The default is 80%.
 
-## Combined status display
+## Status display
 
 The server combines active system statuses into one action-bar line, for example:
 
@@ -153,27 +158,57 @@ Combat: 6s | DEF 40% | EH: 22s
 
 The line can also show the environmental recovery delay, active recovery, or respawn protection (`SP: 4s (-100% damage)`). It clears when no system has an active status.
 
-## Gameplay tuning command index
+## Command reference
 
-All currently implemented tunable settings have per-player Game Master commands; Low HP Defense is automatic:
+All commands below require Minecraft Game Master permission (cheats/OP). Settings are per-player and persist across relogs and server restarts.
 
-| Mechanism | Commands | Default |
+| System | Commands | Defaults |
 |---|---|---|
-| Emergency Heal | `/emergencyhealhp <targets> <percent>`, `/emergencyhealcd <targets> <seconds>` | 25% heal, 30s cooldown; set heal to 0 to disable |
+| Emergency Heal | `/emergencyhealhp <targets> <percent>`, `/emergencyhealcd <targets> <seconds>` | 25% heal, 30s cooldown |
 | Out-of-combat recovery | `/recoverycombat <targets> <seconds>`, `/recoveryenvironment <targets> <seconds>`, `/recoveryrate <targets> <percent>` | 8s combat, 3s environment, 5% max HP/s |
-| Max health and respawn protection | `/sethp <targets> <amount> heart|hp`, `/spawnprotection <targets> <seconds>` | 20 hearts (40 HP), 5s protection |
-| Low HP Defense | Automatic; no tuning command | Resistance I/II/III at 50%/25%/12.5% max HP |
-| Infinite Totem | `/totemcooldown <targets> <seconds>`, `/totemfactors <targets> <inventory_online> <inventory_offline> <container_online> <container_offline>` | 60s per Totem; factors default to inventory online/offline 1x/5x and container online/offline 2x/10x |
-| XP loss reduction | `/xploss <targets> <percent>` | Set per-player reduction from 0% to 100% (default 80%); death and admin `/experience set` excluded |
+| Max health and respawn protection | `/sethp <targets> <amount> heart\|hp`, `/spawnprotection <targets> <seconds>` | 20 hearts (40 HP), 5s protection |
+| Low HP Defense | Automatic; no command | Resistance I/II/III at 50%/25%/12.5% max HP |
+| Infinite Totem | `/totemcooldown <targets> <seconds>`, `/totemfactors <targets> <inventory_online> <inventory_offline> <container_online> <container_offline>` | 60s; factors 1x/5x/2x/10x |
+| XP loss reduction | `/xploss <targets> <percent>` | 80%; death loss and `/experience set` excluded |
 
-These settings are stored per player and persist across relogs and server restarts. Systems not yet ported do not have Fabric commands yet.
+Systems not yet ported from the datapack do not have Fabric commands yet.
 
-## Source layout
+## Installation
+
+The mod runs its gameplay logic on the server:
+
+- **Dedicated server:** install Fabric Loader and this mod JAR on the server.
+- **Single-player opened to LAN:** the host must run Fabric with this mod.
+- **Joining players:** friends can join with vanilla clients; they do not need to install the mod.
+
+## Build from source
+
+Requirements:
+
+- JDK 25
+- Internet access for the first Gradle build
+
+The Gradle wrapper downloads the configured Gradle version automatically. From this directory, run:
+
+```powershell
+.\gradlew.bat build
+```
+
+The built JAR is in `build\libs`. The `build` task also stages a versioned copy in `dist`:
+
+```text
+dist\EasySurvivalPack-0.1.0+mc26.3.jar
+```
+
+Run `.\gradlew.bat dist` to stage the JAR without running the full verification lifecycle. On Windows, double-click `build-mod.bat` to build and keep the result window open. Pass `--no-pause` when running it from a script or terminal that should return immediately.
+
+## Project layout
 
 - `src/main/java`: server-authoritative gameplay and common code
 - `src/main/resources`: Fabric metadata, translations, and mod resources
-- `src/client`: optional client-only tooltip/HUD code if added later
-- `src/test`: unit tests as portable gameplay logic is implemented
+- `src/client`: optional client-only code, if added later
+- `src/test`: tests, as portable gameplay logic is implemented
 
-The original datapack is retained in the workspace under `datapack-to-port` as a behavior reference; it is not included in the mod jar.
-#
+The original datapack is retained in the workspace under `datapack-to-port` as a behavior reference; it is not included in the mod JAR.
+
+Author: Akira Hashimoto
