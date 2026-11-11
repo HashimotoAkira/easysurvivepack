@@ -1,0 +1,14 @@
+.gradle/
+build/
+out/
+classes/
+run/
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+*.hprof
+*.jfr
+hs_err_*.log
+*.cmd
