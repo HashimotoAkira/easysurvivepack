@@ -7,6 +7,8 @@ import org.slf4j.LoggerFactory;
 
 import com.easysurvivalpack.systems.emergencyheal.EmergencyHealService;
 import com.easysurvivalpack.systems.durability.DurabilityRepairService;
+import com.easysurvivalpack.systems.frostwalker.FrostWalkerService;
+import com.easysurvivalpack.systems.inftrident.InfiniteTridentCraftingService;
 import com.easysurvivalpack.systems.lowhpdefense.LowHpDefenseService;
 import com.easysurvivalpack.systems.outofcombatrecovery.OutOfCombatRecoveryService;
 import com.easysurvivalpack.systems.spawn.SpawnSystemService;
@@ -26,6 +28,8 @@ public final class EasySurvivalPack implements ModInitializer {
 		LowHpDefenseService.register();
 		TotemCooldownService.register();
 		DurabilityRepairService.register();
+		FrostWalkerService.register();
+		InfiniteTridentCraftingService.register();
 		StatusDisplayService.register();
 		XpLossService.register();
 		LOGGER.info("Easy Survival Pack initialized for Minecraft 26.3.");

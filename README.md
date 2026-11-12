@@ -125,6 +125,12 @@ Drop one Firework Rocket and one End Crystal together. The same player must drop
 
 The result preserves the original rocket's flight duration and explosion payload. Use it normally or load and fire it with a crossbow; the rocket is not consumed, and its normal explosion behavior is retained.
 
+### Infinite Trident
+
+Drop one Trident and one Nether Star together. Both items must be dropped by the same player within 5 seconds and within a 2-block radius of the Trident. The server consumes exactly one of each and returns an Infinite Trident with the original trident's enchantments and components.
+
+Throwing it creates a normal trident projectile, so damage is attributed to the thrower and enchantments such as Loyalty and Unbreaking still function. Throwing and melee attacks consume durability normally; the projectile cannot be picked up and disappears after 5 seconds, or is removed sooner if Loyalty returns it. If enchanted with Channeling, it summons a normal lightning bolt at the first impact even without rain or a thunderstorm. Drops in the bolt's fire area, including drops created by mobs or players hit by the strike, are collected by the thrower for 5 seconds; raw beef, pork, chicken, mutton, rabbit, cod, and salmon are cooked during recovery. Items that fit enter their inventory, and any remainder drops at their feet.
+
 ### Durability repair upgrades
 
 Drop one damageable item and one or more Dragon's Breath together. All dropped items must be from the same player, within 5 seconds and a 2-block radius of the damageable item. Each Dragon's Breath adds one repair level, up to level 5. Only the required amount of Dragon's Breath is consumed; excess remains on the ground. The upgraded item retains its vanilla enchantments and components.
@@ -135,6 +141,10 @@ Drop one damageable item and one or more Dragon's Breath together. All dropped i
 - Elytra repair at their level rate while flying and at `ceil(level * 1.5)` per second while not flying (8 per second at level 5).
 - Repair applies to upgraded items in equipment, inventory, offhand, Ender Chest, and shulkers carried in those locations.
 - Vanilla enchantments such as Unbreaking and Mending are retained and work normally but do not change the custom repair rate. The level and repair rate appear in the tooltip.
+
+### Frost Walker
+
+Frost Walker boots freeze nearby water source blocks (not flowing water) when the wearer moves, including while jumping up to 2 blocks above the water surface. Frosted ice does not age or melt from neighbor updates while it remains in the active Frost Walker area, whether the wearer is standing or moving; it resumes melting normally after leaving that area. The freeze radius follows the enchantment level. Source lava directly below nearby positions in that radius turns into magma blocks for 5 seconds per Frost Walker level, then returns to source lava if the block is still magma.
 
 ### XP loss reduction
 
@@ -180,6 +190,7 @@ The mod runs its gameplay logic on the server:
 - **Dedicated server:** install Fabric Loader and this mod JAR on the server.
 - **Single-player opened to LAN:** the host must run Fabric with this mod.
 - **Joining players:** friends can join with vanilla clients; they do not need to install the mod.
+- **Mod installed on both server and client:** supported when both use compatible versions. Gameplay changes are handled by the server; the client copy does not run a second set of gameplay ticks. Keep the client and server mod versions aligned to avoid confusing item prediction or display differences.
 
 ## Build from source
 
