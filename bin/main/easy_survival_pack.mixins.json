@@ -12,7 +12,13 @@
 		"InfiniteEnderPearlMixin",
 		"InfiniteFireworkItemMixin",
 		"InfiniteFireworkCrossbowMixin",
-		"DurabilityUseMixin"
+		"InfiniteTridentItemMixin",
+		"InfiniteThrownTridentMixin",
+		"InfiniteTridentBlockHitMixin",
+		"ThunderSkyLightningMixin",
+		"ThunderSkyLightningBoltMixin",
+		"DurabilityUseMixin",
+		"FrostedIceMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

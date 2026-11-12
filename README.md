@@ -3,7 +3,7 @@
 Server-authoritative Fabric mod porting survival mechanics from the Easy Survival Pack datapack.
 
 ![Mod version](https://img.shields.io/badge/version-0.2.0-blue)
-![Minecraft](https://img.shields.io/badge/Minecraft-26.3-brightgreen)
+![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen)
 ![Fabric](https://img.shields.io/badge/loader-Fabric-orange)
 ![Project status](https://img.shields.io/badge/status-in%20development-yellow)
 
@@ -12,10 +12,10 @@ Server-authoritative Fabric mod porting survival mechanics from the Easy Surviva
 | | |
 |---|---|
 | Mod version | `0.2.0` |
-| Minecraft | `26.3` |
-| Fabric Loader | `0.20.1` |
-| Fabric API used for builds | `0.166.0+26.3` |
-| Java | `25` |
+| Minecraft | `1.21.1` |
+| Fabric Loader | `0.16.14` |
+| Fabric API used for builds | `0.116.18+1.21.1` |
+| Java | `21` |
 | Release status | In development; no version tags have been published |
 
 This is an ongoing port, not a feature-complete replacement for the datapack. The version is set in `gradle.properties`. When a release is published, its version should match that value.
@@ -91,7 +91,7 @@ The base cooldown is 60 seconds:
 | Player inventory or carried shulker, owner online | 1x |
 | Player inventory or carried shulker, owner offline | 5x slower |
 | Loaded container, owner online | 2x slower |
-| Loaded container, owner offline | 10x slower |
+| Loaded container, owner offline | 10x slower (5x offline × 2x container) |
 
 Game Masters can configure the per-player base cooldown and cooldown multipliers:
 
@@ -105,41 +105,44 @@ Game Masters can configure the per-player base cooldown and cooldown multipliers
 - Changing the base cooldown caps longer active cooldowns. Factors are saved into each newly activated Totem, so changes affect future activations only.
 - A held placeholder displays its remaining time in the action bar and tooltip. Vanilla clients can display both without a client mod.
 - Inventory and carried-shulker cooldowns are updated on join, leave, server stop, and while online. Loaded block containers are reconciled periodically and when accessed. Items in unloaded chunks update when those chunks load again.
-- Ender Chests and dropped items continue recharging while loaded, but are not searched for a Totem during death protection.
+- Totems in Ender Chests do not activate and their cooldown is paused until they leave the Ender Chest. Dropped items continue recharging while loaded, but are not searched for a Totem during death protection.
 
 ### Infinite Ender Pearl
 
-Drop the following items together:
+Drop one Ender Pearl together with:
 
 ```text
-4 diamonds
-4 gold ingots
-1 Ender Pearl
+5 Amethyst Shards
+5 Redstone Dust
+5 Glowstone Dust
 ```
 
-All nine items must be dropped by the same player within 5 seconds and within a 2-block radius of the Ender Pearl. The server consumes exactly four diamonds, four gold ingots, and one Ender Pearl; extras in those stacks remain. It drops a glinting, marked Infinite Ender Pearl at the crafting spot. Throwing it launches a normal Ender Pearl without consuming the item and retains vanilla Ender Pearl cooldown behavior.
+All ingredients must be dropped by the same player within 5 seconds and within a 2-block radius of the Ender Pearl. The server consumes exactly one Ender Pearl and five of each ingredient; extras in those stacks remain. It drops a glinting, marked Infinite Ender Pearl at the crafting spot. Throwing it launches a normal Ender Pearl without consuming the item and retains vanilla Ender Pearl cooldown behavior.
 
 ### Infinite Firework
 
-Drop one Firework Rocket and one End Crystal together. The same player must drop both within 5 seconds and within a 2-block radius of the rocket. The server consumes exactly one rocket and one crystal; extras remain.
+Drop one Firework Rocket together with five Amethyst Shards, five Redstone Dust, and five Glowstone Dust. All ingredients must be dropped by the same player within 5 seconds and within a 2-block radius of the rocket. The server consumes exactly one rocket and five of each ingredient; extras in those stacks remain.
 
 The result preserves the original rocket's flight duration and explosion payload. Use it normally or load and fire it with a crossbow; the rocket is not consumed, and its normal explosion behavior is retained.
 
+### Thunder Sky
+
+Drop one Trident and one Nether Star together. Both items must be dropped by the same player within 5 seconds and within a 2-block radius of the Trident. The server consumes exactly one of each and adds the Thunder Sky behavior to the Trident without changing its name or other components.
+
+Every third throw calls five lightning strikes; other throws call three, with two or three power-4 non-block-damaging explosions. Channeling makes each strike seek a living target within 4 blocks of the impact; later strikes continue tracking the first target outside that area. Thunder Sky lightning does not ignite blocks, still ignites struck living entities, and does not damage or launch dropped items. The thrower is immune to direct damage from Thunder Sky's lightning and explosions, but can still catch fire from lightning. Non-player-thrown drops in each bolt's fire area are collected by the thrower for 5 seconds; items thrown by a player are left alone. Raw beef, pork, chicken, mutton, rabbit, cod, and salmon are cooked during recovery. Items that fit enter their inventory, and any remainder drops at their feet.
+
 ### Infinite Trident
 
-Drop one Trident and one Nether Star together. Both items must be dropped by the same player within 5 seconds and within a 2-block radius of the Trident. The server consumes exactly one of each and returns an Infinite Trident with the original trident's enchantments and components.
-
-Throwing it creates a normal trident projectile, so damage is attributed to the thrower and enchantments such as Loyalty and Unbreaking still function. Throwing and melee attacks consume durability normally; the projectile cannot be picked up and disappears after 5 seconds, or is removed sooner if Loyalty returns it. If enchanted with Channeling, it summons a normal lightning bolt at the first impact even without rain or a thunderstorm. Drops in the bolt's fire area, including drops created by mobs or players hit by the strike, are collected by the thrower for 5 seconds; raw beef, pork, chicken, mutton, rabbit, cod, and salmon are cooked during recovery. Items that fit enter their inventory, and any remainder drops at their feet.
+Drop one Trident together with five Amethyst Shards, five Redstone Dust, and five Glowstone Dust. All ingredients must be dropped by the same player within 5 seconds and within a 2-block radius of the Trident. The server consumes exactly one Trident and five of each ingredient; extras remain. The result retains the Trident's name, enchantments, and components and gains the Infinite behavior. Its throws do not consume the Trident, and its projectile cannot be picked up and disappears after 5 seconds or sooner if Loyalty returns it. Thunder Sky and Infinite are separate behaviors and can both be applied to the same Trident.
 
 ### Durability repair upgrades
 
-Drop one damageable item and one or more Dragon's Breath together. All dropped items must be from the same player, within 5 seconds and a 2-block radius of the damageable item. Each Dragon's Breath adds one repair level, up to level 5. Only the required amount of Dragon's Breath is consumed; excess remains on the ground. The upgraded item retains its vanilla enchantments and components.
+Drop one damageable item and one or more Dragon's Breath together. All dropped items must be from the same player, within 5 seconds and a 2-block radius of the damageable item. Each Dragon's Breath adds one repair level, up to level 10 for armor, level 3 for Elytra, and level 5 for other items. Only the required amount of Dragon's Breath is consumed; excess remains on the ground. The upgraded item retains its vanilla enchantments and components.
 
-- Each level restores one durability point per second, up to 5 per second at level 5.
-- Repair waits until the player's 8-second combat recovery delay ends.
-- Pickaxes, axes, shovels, and hoes also wait 5 seconds after their last durability use.
-- Elytra repair at their level rate while flying and at `ceil(level * 1.5)` per second while not flying (8 per second at level 5).
-- Repair applies to upgraded items in equipment, inventory, offhand, Ender Chest, and shulkers carried in those locations.
+- Each level represents one durability point per second at 100% rate. Armor repairs at 10% of its level per second during combat; weapons repair at 20% per second during combat. Pickaxes, axes, shovels, and hoes repair at 20% of their level while recently used, then return to 100% when not in use. Other items repair at 100% of their level.
+- Fractional repair accumulates on the item until it reaches one durability point; it never rounds a fractional amount into extra durability.
+- Elytra repair at 100% of their level whenever carried by the player, including equipped, inventory, or a carried shulker. Elytra in an Ender Chest do not repair.
+- Other upgraded items repair in equipment, inventory, offhand, Ender Chest, and shulkers carried in those locations. Combat changes repair rates but does not stop repair.
 - Vanilla enchantments such as Unbreaking and Mending are retained and work normally but do not change the custom repair rate. The level and repair rate appear in the tooltip.
 
 ### Frost Walker
@@ -196,7 +199,7 @@ The mod runs its gameplay logic on the server:
 
 Requirements:
 
-- JDK 25
+- JDK 21 for the default Minecraft 1.21.1 build
 - Internet access for the first Gradle build
 
 The Gradle wrapper downloads the configured Gradle version automatically. From this directory, run:
@@ -208,15 +211,25 @@ The Gradle wrapper downloads the configured Gradle version automatically. From t
 The built JAR is in `build\libs`. The `build` task also stages a versioned copy in `dist`:
 
 ```text
-dist\EasySurvivalPack-0.2.0+mc26.3.jar
+dist\EasySurvivalPack-0.2.0+mc1.21.1.jar
 ```
 
 Run `.\gradlew.bat dist` to stage the JAR without running the full verification lifecycle. On Windows, double-click `build-mod.bat` to build and keep the result window open. Pass `--no-pause` when running it from a script or terminal that should return immediately.
 
+Each build removes older `EasySurvivalPack-*.jar` files from `dist` before staging the current JAR. Run `release.cmd` to build and publish that JAR as a GitHub Release using the version in its filename. The script requires `gh` to be installed and authenticated, and the Git worktree to be clean. Use `release.cmd --dry-run` to preview the release tag and artifact without building or publishing.
+
+The 26.3 source set is retained and can be selected with:
+
+```powershell
+.\gradlew.bat build '-Pminecraft_version=26.3' '-Ploader_version=0.20.1' '-Pfabric_api_version=0.166.0+26.3'
+```
+
+That build requires JDK 25.
+
 ## Project layout
 
-- `src/main/java`: server-authoritative gameplay and common code
-- `src/main/resources`: Fabric metadata, translations, and mod resources
+- `src/main/version/<minecraft-version>/java`: server-authoritative gameplay and common code for that Minecraft version
+- `src/main/version/<minecraft-version>/resources`: Fabric metadata, translations, and mod resources for that Minecraft version
 - `src/client`: optional client-only code, if added later
 - `src/test`: tests, as portable gameplay logic is implemented
 

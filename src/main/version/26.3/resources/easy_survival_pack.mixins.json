@@ -1,0 +1,26 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "com.easysurvivalpack.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"ExperienceCommandMixin",
+		"LivingEntityEffectMixin",
+		"TotemDeathProtectionMixin",
+		"CraftingMenuMixin",
+		"TotemItemEntityMixin",
+		"InfiniteEnderPearlMixin",
+		"InfiniteFireworkItemMixin",
+		"InfiniteFireworkCrossbowMixin",
+		"InfiniteTridentItemMixin",
+		"InfiniteThrownTridentMixin",
+		"InfiniteTridentBlockHitMixin",
+		"ThunderSkyLightningMixin",
+		"ThunderSkyLightningBoltMixin",
+		"DurabilityUseMixin",
+		"FrostedIceMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

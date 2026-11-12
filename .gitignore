@@ -3,6 +3,7 @@ build/
 out/
 classes/
 run/
+dist/
 .idea/
 .vscode/
 *.iml
@@ -12,3 +13,4 @@ run/
 *.jfr
 hs_err_*.log
 *.cmd
+!/release.cmd
