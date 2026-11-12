@@ -15,15 +15,15 @@ if not "%BUILD_RESULT%"=="0" (
 
 echo.
 echo Build successful.
-echo Output: "%~dp0dist\EasySurvivalPack-0.1.0+mc26.3.jar"
+echo Output: "%~dp0dist\EasySurvivalPack-0.2.0+mc26.3.jar"
 if not exist "%~dp0run\mods" mkdir "%~dp0run\mods"
-copy /Y "%~dp0dist\EasySurvivalPack-0.1.0+mc26.3.jar" "%~dp0run\mods\EasySurvivalPack-0.1.0+mc26.3.jar" >nul
+copy /Y "%~dp0dist\EasySurvivalPack-0.2.0+mc26.3.jar" "%~dp0run\mods\EasySurvivalPack-0.2.0+mc26.3.jar" >nul
 if errorlevel 1 (
 	echo.
 	echo Failed to install the mod JAR into "%~dp0run\mods".
 	if /I not "%~1"=="--no-pause" pause
 	exit /b 1
 )
-echo Installed for the local server: "%~dp0run\mods\EasySurvivalPack-0.1.0+mc26.3.jar"
+echo Installed for the local server: "%~dp0run\mods\EasySurvivalPack-0.2.0+mc26.3.jar"
 if /I not "%~1"=="--no-pause" pause
 exit /b 0

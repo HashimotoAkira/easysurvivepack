@@ -2,7 +2,7 @@
 
 Server-authoritative Fabric mod porting survival mechanics from the Easy Survival Pack datapack.
 
-![Mod version](https://img.shields.io/badge/version-0.1.0-blue)
+![Mod version](https://img.shields.io/badge/version-0.2.0-blue)
 ![Minecraft](https://img.shields.io/badge/Minecraft-26.3-brightgreen)
 ![Fabric](https://img.shields.io/badge/loader-Fabric-orange)
 ![Project status](https://img.shields.io/badge/status-in%20development-yellow)
@@ -11,7 +11,7 @@ Server-authoritative Fabric mod porting survival mechanics from the Easy Surviva
 
 | | |
 |---|---|
-| Mod version | `0.1.0` |
+| Mod version | `0.2.0` |
 | Minecraft | `26.3` |
 | Fabric Loader | `0.20.1` |
 | Fabric API used for builds | `0.166.0+26.3` |
@@ -208,7 +208,7 @@ The Gradle wrapper downloads the configured Gradle version automatically. From t
 The built JAR is in `build\libs`. The `build` task also stages a versioned copy in `dist`:
 
 ```text
-dist\EasySurvivalPack-0.1.0+mc26.3.jar
+dist\EasySurvivalPack-0.2.0+mc26.3.jar
 ```
 
 Run `.\gradlew.bat dist` to stage the JAR without running the full verification lifecycle. On Windows, double-click `build-mod.bat` to build and keep the result window open. Pass `--no-pause` when running it from a script or terminal that should return immediately.
