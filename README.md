@@ -2,7 +2,7 @@
 
 Server-authoritative Fabric mod porting survival mechanics from the Easy Survival Pack datapack.
 
-![Mod version](https://img.shields.io/badge/version-0.2.0-blue)
+![Mod version](https://img.shields.io/badge/version-0.3.0-blue)
 ![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen)
 ![Fabric](https://img.shields.io/badge/loader-Fabric-orange)
 ![Project status](https://img.shields.io/badge/status-in%20development-yellow)
@@ -11,7 +11,7 @@ Server-authoritative Fabric mod porting survival mechanics from the Easy Surviva
 
 | | |
 |---|---|
-| Mod version | `0.2.0` |
+| Mod version | `0.3.0` |
 | Minecraft | `1.21.1` |
 | Fabric Loader | `0.16.14` |
 | Fabric API used for builds | `0.116.18+1.21.1` |
@@ -60,6 +60,7 @@ Game Masters can set a player's maximum health and respawn protection:
 /sethp <targets> <amount> heart
 /sethp <targets> <amount> hp
 /spawnprotection <targets> <seconds>
+/pvp on|off
 ```
 
 - `heart` converts hearts to health points (`1 heart = 2 HP`); `hp` uses health points directly.
@@ -67,6 +68,7 @@ Game Masters can set a player's maximum health and respawn protection:
 - Max health is stored per player, restored on rejoin and reapplied after death. Respawning restores health to the configured maximum.
 - Respawn protection lasts 5 seconds by default and cancels incoming damage without applying a Resistance effect. Attacking another entity ends the attacker's protection.
 - `/spawnprotection` sets the duration for the player's next respawn; `0` disables it. The setting persists and also caps longer active protection.
+- `/pvp on|off` changes the server-wide PvP setting and persists it in `config/easy_survival_pack_pvp.properties`.
 
 ### Low HP Defense
 
@@ -88,10 +90,10 @@ The base cooldown is 60 seconds:
 
 | Location and owner state | Cooldown rate |
 |---|---:|
-| Player inventory or carried shulker, owner online | 1x |
-| Player inventory or carried shulker, owner offline | 5x slower |
-| Loaded container, owner online | 2x slower |
-| Loaded container, owner offline | 10x slower (5x offline × 2x container) |
+| Player inventory, owner online | 1x |
+| Player inventory, owner offline | 5x slower |
+| Carried shulker, owner online | 2x slower |
+| Carried shulker, owner offline | 10x slower (5x offline × 2x container) |
 
 Game Masters can configure the per-player base cooldown and cooldown multipliers:
 
@@ -104,8 +106,9 @@ Game Masters can configure the per-player base cooldown and cooldown multipliers
 - Each factor is an integer from 1 to 10 and means the cooldown runs that many times slower. Defaults are `1 5 2 10` in argument order.
 - Changing the base cooldown caps longer active cooldowns. Factors are saved into each newly activated Totem, so changes affect future activations only.
 - A held placeholder displays its remaining time in the action bar and tooltip. Vanilla clients can display both without a client mod.
-- Inventory and carried-shulker cooldowns are updated on join, leave, server stop, and while online. Loaded block containers are reconciled periodically and when accessed. Items in unloaded chunks update when those chunks load again.
-- Totems in Ender Chests do not activate and their cooldown is paused until they leave the Ender Chest. Dropped items continue recharging while loaded, but are not searched for a Totem during death protection.
+- Cooldowns update only while the Totem is in the player's inventory, a Trinkets slot, or in a shulker carried there. Cooldowns pause in world containers, Ender Chests, and dropped items; those locations are not scanned.
+- A Totem in a carried shulker or Trinkets slot can activate on death. Totems in world containers, Ender Chests, and dropped items cannot.
+- Trinkets is an optional dependency on Minecraft 1.21.1. Totems in Trinkets slots use the player's online/offline inventory cooldown rate, and shulkers equipped in Trinkets slots use the carried-container rate.
 
 ### Infinite Ender Pearl
 
@@ -127,13 +130,21 @@ The result preserves the original rocket's flight duration and explosion payload
 
 ### Thunder Sky
 
-Drop one Trident and one Nether Star together. Both items must be dropped by the same player within 5 seconds and within a 2-block radius of the Trident. The server consumes exactly one of each and adds the Thunder Sky behavior to the Trident without changing its name or other components.
+Drop one Trident and one Nether Star together. Both items must be dropped by the same player within 5 seconds and within a 2-block radius of the Trident. The server consumes exactly one of each and adds the Thunder Sky behavior to the Trident without changing its name or other components. For a Thunder Sky trident, the action bar shows how many throws remain until its empowered strike.
 
-Every third throw calls five lightning strikes; other throws call three, with two or three power-4 non-block-damaging explosions. Channeling makes each strike seek a living target within 4 blocks of the impact; later strikes continue tracking the first target outside that area. Thunder Sky lightning does not ignite blocks, still ignites struck living entities, and does not damage or launch dropped items. The thrower is immune to direct damage from Thunder Sky's lightning and explosions, but can still catch fire from lightning. Non-player-thrown drops in each bolt's fire area are collected by the thrower for 5 seconds; items thrown by a player are left alone. Raw beef, pork, chicken, mutton, rabbit, cod, and salmon are cooked during recovery. Items that fit enter their inventory, and any remainder drops at their feet.
+Every third throw calls five lightning strikes; other throws call three, with two or three power-4 non-block-damaging explosions. Channeling makes each strike seek a living target within 4 blocks of the impact; later strikes continue tracking the first target outside that area. Thunder Sky lightning does not ignite blocks, still ignites struck living entities, and does not damage or launch dropped items. When server PvP is disabled, Thunder Sky lightning and explosions neither damage, ignite, nor knock back other players. The thrower is immune to all damage from Thunder Sky's lightning and explosions, including fire damage from its lightning. Non-player-thrown drops in each bolt's fire area are collected by the thrower for 5 seconds; items thrown by a player are left alone. Raw beef, pork, chicken, mutton, rabbit, cod, and salmon are cooked during recovery. Items that fit enter their inventory, and any remainder drops at their feet.
+
+### THE HEAVEN'S SPEAR
+
+To craft THE HEAVEN'S SPEAR, first upgrade one Trident with both Infinite and Thunder Sky. Then drop that Trident together with one Nether Star and four Netherite Ingots. All dropped items must be from the same player, within 5 seconds and a 2-block radius of the Trident. The result retains both upgrades, gains the Heaven's Spear behavior, and is named THE HEAVEN'S SPEAR. Its throws travel straight with no gravity at a controlled speed; if a living target is within 1.5 blocks of the flight path, aim assist steers the spear into it, matching Railgun Bow. Infinite tridents remain in inventory and do not use the uninfused recovery behavior. Regular throws call four lightning strikes, while every third throw calls seven. Every strike also creates one non-block-damaging explosion. The action bar shows completed throws toward the next empowered throw: `Trident: 0`, `1`, then `READY`, and returns to `0` after the empowered throw.
 
 ### Infinite Trident
 
 Drop one Trident together with five Amethyst Shards, five Redstone Dust, and five Glowstone Dust. All ingredients must be dropped by the same player within 5 seconds and within a 2-block radius of the Trident. The server consumes exactly one Trident and five of each ingredient; extras remain. The result retains the Trident's name, enchantments, and components and gains the Infinite behavior. Its throws do not consume the Trident, and its projectile cannot be picked up and disappears after 5 seconds or sooner if Loyalty returns it. Thunder Sky and Infinite are separate behaviors and can both be applied to the same Trident.
+
+### Railgun Bow
+
+Drop one Bow and one Nether Star. Both items must be from the same player within 5 seconds and within a 2-block radius of the Bow. The crafted Railgun preserves the vanilla bow model, enchantments, and draw/release controls. After the normal 20-tick draw, holding the bow charges it for 2 seconds; the action bar displays `RailGun: 0%` through `RailGun: 100%`. Status text stays on one row unless it exceeds the screen width, in which case the client wraps it onto additional rows. Charge scales arrow damage from 0 to 5 times its original damage. Arrow and explosion damage are doubled against non-player living entities; explosion damage is 80% of the corresponding charged arrow damage. Its arrows ignore vanilla bow spread and launch exactly along the shooter's view direction at high speed with gravity disabled; if a living target is within 1.5 blocks of the flight path, aim assist steers the arrow into it. Each impact creates seven non-block-damaging blast zones with a 9-block radius (1.5 times the previous 6-block radius). Each entity can receive the explosion effect only once per shot; a direct arrow hit and its explosion damage are separate.
 
 ### Durability repair upgrades
 
@@ -143,11 +154,14 @@ Drop one damageable item and one or more Dragon's Breath together. All dropped i
 - Fractional repair accumulates on the item until it reaches one durability point; it never rounds a fractional amount into extra durability.
 - Elytra repair at 100% of their level whenever carried by the player, including equipped, inventory, or a carried shulker. Elytra in an Ender Chest do not repair.
 - Other upgraded items repair in equipment, inventory, offhand, Ender Chest, and shulkers carried in those locations. Combat changes repair rates but does not stop repair.
+- On Minecraft 1.21.1 with Trinkets installed, upgraded items in Trinkets slots also repair.
 - Vanilla enchantments such as Unbreaking and Mending are retained and work normally but do not change the custom repair rate. The level and repair rate appear in the tooltip.
 
 ### Frost Walker
 
 Frost Walker boots freeze nearby water source blocks (not flowing water) when the wearer moves, including while jumping up to 2 blocks above the water surface. Frosted ice does not age or melt from neighbor updates while it remains in the active Frost Walker area, whether the wearer is standing or moving; it resumes melting normally after leaving that area. The freeze radius follows the enchantment level. Source lava directly below nearby positions in that radius turns into magma blocks for 5 seconds per Frost Walker level, then returns to source lava if the block is still magma.
+
+On Minecraft 1.21.1 with Trinkets installed, Frost Walker works from any equipped Trinkets item.
 
 ### XP loss reduction
 
@@ -173,13 +187,14 @@ The line can also show the environmental recovery delay, active recovery, or res
 
 ## Command reference
 
-All commands below require Minecraft Game Master permission (cheats/OP). Settings are per-player and persist across relogs and server restarts.
+All commands below require Minecraft Game Master permission (cheats/OP). Player settings persist across relogs and server restarts; the PvP setting is server-wide and also persists across restarts.
 
 | System | Commands | Defaults |
 |---|---|---|
 | Emergency Heal | `/emergencyhealhp <targets> <percent>`, `/emergencyhealcd <targets> <seconds>` | 25% heal, 30s cooldown |
 | Out-of-combat recovery | `/recoverycombat <targets> <seconds>`, `/recoveryenvironment <targets> <seconds>`, `/recoveryrate <targets> <percent>` | 8s combat, 3s environment, 5% max HP/s |
 | Max health and respawn protection | `/sethp <targets> <amount> heart\|hp`, `/spawnprotection <targets> <seconds>` | 20 hearts (40 HP), 5s protection |
+| PvP | `/pvp on`, `/pvp off` | Preserves the server's current PvP setting until changed |
 | Low HP Defense | Automatic; no command | Resistance I/II/III at 50%/25%/12.5% max HP |
 | Infinite Totem | `/totemcooldown <targets> <seconds>`, `/totemfactors <targets> <inventory_online> <inventory_offline> <container_online> <container_offline>` | 60s; factors 1x/5x/2x/10x |
 | XP loss reduction | `/xploss <targets> <percent>` | 80%; death loss and `/experience set` excluded |
@@ -211,12 +226,12 @@ The Gradle wrapper downloads the configured Gradle version automatically. From t
 The built JAR is in `build\libs`. The `build` task also stages a versioned copy in `dist`:
 
 ```text
-dist\EasySurvivalPack-0.2.0+mc1.21.1.jar
+dist\EasySurvivalPack-0.3.0+mc1.21.1.jar
 ```
 
-Run `.\gradlew.bat dist` to stage the JAR without running the full verification lifecycle. On Windows, double-click `build-mod.bat` to build and keep the result window open. Pass `--no-pause` when running it from a script or terminal that should return immediately.
+Run `.\gradlew.bat dist` to stage the runtime JAR without running the full verification lifecycle; for Minecraft 1.21.1 this uses Loom's remapped JAR. On Windows, double-click `build-mod.bat` and choose `0` to build all supported versions, `1` for Minecraft 1.21.1, or `2` for Minecraft 26.3. You can also pass a version directly, for example `build-mod.bat 26.3 --no-pause`, or use `build-mod.bat all --no-pause` to build both. Without a version it prompts interactively. A single-version build installs only that version into `run\mods`, removing older Easy Survival Pack JARs first. Build-all asks which version to install there after building both; `dist` retains both JARs.
 
-Each build removes older `EasySurvivalPack-*.jar` files from `dist` before staging the current JAR. Run `release.cmd` to build and publish that JAR as a GitHub Release using the version in its filename. The script requires `gh` to be installed and authenticated, and the Git worktree to be clean. Use `release.cmd --dry-run` to preview the release tag and artifact without building or publishing.
+Each build removes older mod-code-version JARs for the selected Minecraft version from `dist`, while preserving JARs for other Minecraft versions. Run `release.cmd` to choose a Minecraft version, build it, and publish its JAR as a GitHub Release. You can also pass a version directly, for example `release.cmd 26.3`; add `--dry-run` to preview without building or publishing. Publishing requires `gh` to be installed and authenticated, and the Git worktree to be clean.
 
 The 26.3 source set is retained and can be selected with:
 

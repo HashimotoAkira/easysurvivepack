@@ -10,7 +10,8 @@
 	"environment": "*",
 	"icon": "assets/easy_survival_pack/icon.png",
 	"mixins": [
-		"easy_survival_pack.mixins.json"
+		"easy_survival_pack.mixins.json",
+		"easy_survival_pack.client.mixins.json"
 	],
 	"entrypoints": {
 		"main": [
@@ -18,9 +19,12 @@
 		]
 	},
 	"depends": {
-		"fabricloader": ">=0.20.1",
-		"minecraft": "~26.3",
-		"java": ">=25",
-		"fabric-api": ">=0.165.2"
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": ">=0.116.18"
+	},
+	"suggests": {
+		"trinkets": "*"
 	}
 }

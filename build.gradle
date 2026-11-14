@@ -11,10 +11,25 @@ version = project.mod_version
 group = project.maven_group
 
 repositories {
+	maven {
+		url = 'https://api.modrinth.com/maven'
+	}
+	maven {
+		url = 'https://maven.ladysnake.org/releases/'
+	}
 }
 
 loom {
 	splitEnvironmentSourceSets()
+
+	if (project.minecraft_version.startsWith('1.')) {
+		mixin {
+			useLegacyMixinAp = true
+			defaultRefmapName = 'easy_survival_pack.refmap.json'
+			add sourceSets.main
+			add sourceSets.client, 'easy_survival_pack.client.refmap.json'
+		}
+	}
 
 	mods {
 		"easy_survival_pack" {
@@ -25,7 +40,9 @@ loom {
 }
 
 sourceSets.main.java.setSrcDirs(["src/main/version/${project.minecraft_version}/java"])
+sourceSets.client.java.setSrcDirs(["src/client/version/${project.minecraft_version}/java"])
 sourceSets.main.resources.setSrcDirs(["src/main/version/${project.minecraft_version}/resources"])
+sourceSets.client.resources.setSrcDirs(["src/client/version/${project.minecraft_version}/resources"])
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -33,6 +50,11 @@ dependencies {
 		mappings loom.officialMojangMappings()
 		modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 		modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+		if (project.minecraft_version == '1.21.1') {
+			modCompileOnly "maven.modrinth:trinkets:3.10.0"
+			modCompileOnly "org.ladysnake.cardinal-components-api:cardinal-components-base:6.1.0"
+			modCompileOnly "org.ladysnake.cardinal-components-api:cardinal-components-entity:6.1.0"
+		}
 	} else {
 		implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 		implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
@@ -65,22 +87,18 @@ base {
 
 def distributionDirectory = layout.projectDirectory.dir('dist')
 def distributionFilename = "EasySurvivalPack-${project.version}+mc${project.minecraft_version}.jar"
+def distributionJarTask = tasks.named(project.minecraft_version.startsWith('1.') ? 'remapJar' : 'jar')
 
-tasks.register('cleanDist', Delete) {
+tasks.register('dist', Sync) {
 	group = 'build'
-	description = 'Removes older Easy Survival Pack JARs from the distribution directory.'
-	delete fileTree(distributionDirectory).matching {
-		include 'EasySurvivalPack-*.jar'
-	}
-}
-
-tasks.register('dist', Copy) {
-	group = 'build'
-	description = 'Copies the mod jar to the project dist directory.'
-	dependsOn tasks.named('jar')
-	dependsOn tasks.named('cleanDist')
-	from(tasks.named('jar', Jar).flatMap { it.archiveFile })
+	description = 'Stages the runtime mod jar and removes outdated code-version jars for the selected Minecraft version.'
+	dependsOn distributionJarTask
+	from(distributionJarTask)
 	into(distributionDirectory)
+	preserve {
+		include '**/*'
+		exclude "EasySurvivalPack-*+mc${project.minecraft_version}.jar"
+	}
 	rename { distributionFilename }
 }
 

@@ -1,6 +1,7 @@
 {
 	"required": true,
 	"minVersion": "0.8",
+	"refmap": "easy_survival_pack.refmap.json",
 	"package": "com.easysurvivalpack.mixin",
 	"compatibilityLevel": "JAVA_21",
 	"mixins": [
@@ -10,11 +11,15 @@
 		"CraftingMenuMixin",
 		"TotemItemEntityMixin",
 		"InfiniteEnderPearlMixin",
+		"InfiniteEnderPearlUseMixin",
 		"InfiniteFireworkItemMixin",
 		"InfiniteFireworkCrossbowMixin",
 		"InfiniteTridentItemMixin",
 		"InfiniteThrownTridentMixin",
 		"InfiniteTridentBlockHitMixin",
+		"RailgunArrowItemMixin",
+		"RailgunProjectileMixin",
+		"EntityInvulnerabilityAccessor",
 		"ThunderSkyLightningMixin",
 		"ThunderSkyLightningBoltMixin",
 		"DurabilityUseMixin",

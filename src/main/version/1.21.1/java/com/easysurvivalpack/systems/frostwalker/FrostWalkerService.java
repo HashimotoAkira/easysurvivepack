@@ -17,6 +17,8 @@ import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.block.Blocks;
 
+import com.easysurvivalpack.compat.TrinketsSupport;
+
 public final class FrostWalkerService {
 	private static final int TICKS_PER_SECOND = 20;
 	private static final int LAVA_SECONDS_PER_LEVEL = 5;
@@ -60,28 +62,36 @@ public final class FrostWalkerService {
 
 	private static void processPlayer(UUID playerId, ServerPlayer player) {
 		ServerLevel level = (ServerLevel) player.level();
-		int enchantmentLevel = EnchantmentHelper.getItemEnchantmentLevel(
-				level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FROST_WALKER),
+		var frostWalker = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FROST_WALKER);
+		int[] enchantmentLevel = {EnchantmentHelper.getItemEnchantmentLevel(
+				frostWalker,
 				player.getItemBySlot(EquipmentSlot.FEET)
+		)};
+		TrinketsSupport.forEachEquipped(player, (stack, setStack) ->
+			enchantmentLevel[0] = Math.max(
+					enchantmentLevel[0],
+					EnchantmentHelper.getItemEnchantmentLevel(frostWalker, stack)
+			)
 		);
+		int maxEnchantmentLevel = enchantmentLevel[0];
 		BlockPos position = player.blockPosition();
 		PlayerLocation previous = PLAYER_LOCATIONS.get(playerId);
 		PLAYER_LOCATIONS.put(
 				playerId,
-				new PlayerLocation(level, position, enchantmentLevel)
+				new PlayerLocation(level, position, maxEnchantmentLevel)
 		);
-		if (enchantmentLevel <= 0
+		if (maxEnchantmentLevel <= 0
 				|| player.isPassenger()
 				|| previous != null
 						&& previous.level() == level
 						&& previous.position().equals(position)
-						&& previous.enchantmentLevel() == enchantmentLevel) {
+						&& previous.enchantmentLevel() == maxEnchantmentLevel) {
 			return;
 		}
 
-		int radius = Math.min(16, 3 + enchantmentLevel - 1);
+		int radius = Math.min(16, 3 + maxEnchantmentLevel - 1);
 		freezeNearbyWater(level, player, position, radius);
-		convertNearbyLava(level, position, radius, enchantmentLevel);
+		convertNearbyLava(level, position, radius, maxEnchantmentLevel);
 	}
 
 	public static boolean shouldKeepFrostedIce(ServerLevel level, BlockPos icePosition) {

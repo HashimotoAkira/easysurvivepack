@@ -11,6 +11,8 @@ import com.easysurvivalpack.systems.frostwalker.FrostWalkerService;
 import com.easysurvivalpack.systems.inftrident.InfiniteTridentCraftingService;
 import com.easysurvivalpack.systems.lowhpdefense.LowHpDefenseService;
 import com.easysurvivalpack.systems.outofcombatrecovery.OutOfCombatRecoveryService;
+import com.easysurvivalpack.systems.pvp.PvpSettingsService;
+import com.easysurvivalpack.systems.railgun.RailgunService;
 import com.easysurvivalpack.systems.spawn.SpawnSystemService;
 import com.easysurvivalpack.systems.totem.TotemCooldownService;
 import com.easysurvivalpack.display.StatusDisplayService;
@@ -30,6 +32,8 @@ public final class EasySurvivalPack implements ModInitializer {
 		DurabilityRepairService.register();
 		FrostWalkerService.register();
 		InfiniteTridentCraftingService.register();
+		RailgunService.register();
+		PvpSettingsService.register();
 		StatusDisplayService.register();
 		XpLossService.register();
 		LOGGER.info("Easy Survival Pack initialized for Minecraft 1.21.1.");

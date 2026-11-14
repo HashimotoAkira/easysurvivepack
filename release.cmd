@@ -3,12 +3,52 @@ setlocal
 cd /d "%~dp0"
 
 set "DRY_RUN=0"
-if /I "%~1"=="--dry-run" set "DRY_RUN=1"
-if not "%~1"=="" if /I not "%~1"=="--dry-run" (
-	echo Usage: release.cmd [--dry-run]
-	exit /b 2
+set "MC_VERSION="
+
+:parse_args
+if "%~1"=="" goto args_done
+if /I "%~1"=="--dry-run" (
+	set "DRY_RUN=1"
+	shift
+	goto parse_args
+)
+if not defined MC_VERSION (
+	set "MC_VERSION=%~1"
+	shift
+	goto parse_args
+)
+echo Unknown argument: %~1
+goto usage_error
+
+:args_done
+if defined MC_VERSION goto validate_version
+
+echo Select Minecraft version to release:
+echo   1^) Minecraft 1.21.1  ^(Java 21^)
+echo   2^) Minecraft 26.3    ^(Java 25^)
+choice /c 12 /n /m "Choose [1/2]: "
+if errorlevel 2 (
+	set "MC_VERSION=26.3"
+) else (
+	set "MC_VERSION=1.21.1"
 )
 
+:validate_version
+if "%MC_VERSION%"=="1.21.1" goto configure_1211
+if "%MC_VERSION%"=="26.3" goto configure_263
+echo Unsupported Minecraft version: %MC_VERSION%
+goto usage_error
+
+:configure_1211
+set "LOADER_VERSION=0.16.14"
+set "FABRIC_API_VERSION=0.116.18+1.21.1"
+goto check_gh
+
+:configure_263
+set "LOADER_VERSION=0.20.1"
+set "FABRIC_API_VERSION=0.166.0+26.3"
+
+:check_gh
 where gh >nul 2>&1
 if errorlevel 1 (
 	echo GitHub CLI "gh" was not found. Install it and authenticate with "gh auth login".
@@ -37,8 +77,8 @@ if defined HAS_CHANGES (
 	exit /b 1
 )
 
-echo Building Easy Survival Pack...
-call gradlew.bat build --no-daemon
+echo Building Easy Survival Pack for Minecraft %MC_VERSION%...
+call gradlew.bat build --no-daemon "-Pminecraft_version=%MC_VERSION%" "-Ploader_version=%LOADER_VERSION%" "-Pfabric_api_version=%FABRIC_API_VERSION%"
 if errorlevel 1 (
 	echo Build failed; no release was published.
 	exit /b 1
@@ -46,10 +86,10 @@ if errorlevel 1 (
 
 :select_artifact
 set "RELEASE_JAR="
-for /f "delims=" %%F in ('dir /b /a-d /o-d "dist\EasySurvivalPack-*.jar" 2^>nul') do if not defined RELEASE_JAR set "RELEASE_JAR=%%F"
+for /f "delims=" %%F in ('dir /b /a-d "dist\EasySurvivalPack-*+mc%MC_VERSION%.jar" 2^>nul') do set "RELEASE_JAR=%%F"
 if not defined RELEASE_JAR (
-	echo No Easy Survival Pack JAR was found in dist.
-	if "%DRY_RUN%"=="1" echo Run a build first, or run release.cmd without --dry-run.
+	echo No Minecraft %MC_VERSION% JAR was found in dist.
+	if "%DRY_RUN%"=="1" echo Run build-mod.bat %MC_VERSION% first, or run release.cmd without --dry-run.
 	exit /b 1
 )
 
@@ -89,3 +129,8 @@ if errorlevel 1 (
 
 echo Release published successfully.
 exit /b 0
+
+:usage_error
+echo Usage: release.cmd [1.21.1^|26.3] [--dry-run]
+echo Run without a version to choose from an interactive menu.
+exit /b 2

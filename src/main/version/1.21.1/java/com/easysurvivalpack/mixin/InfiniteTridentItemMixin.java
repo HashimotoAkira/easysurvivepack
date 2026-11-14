@@ -4,7 +4,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Redirect;
 
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TridentItem;
 
@@ -16,21 +16,15 @@ public abstract class InfiniteTridentItemMixin {
 			method = "releaseUsing",
 			at = @At(
 					value = "INVOKE",
-					target = "Lnet/minecraft/world/item/ItemStack;consumeAndReturn(ILnet/minecraft/world/entity/LivingEntity;)Lnet/minecraft/world/item/ItemStack;"
+					target = "Lnet/minecraft/world/entity/player/Inventory;removeItem(Lnet/minecraft/world/item/ItemStack;)V"
 			)
 	)
-	private ItemStack easySurvivalPack$keepInfiniteTridentInInventory(
-			ItemStack stack,
-			int amount,
-			LivingEntity user
-	) {
-		if (InfiniteTridentCraftingService.isInfiniteTrident(stack)) {
-			return InfiniteTridentCraftingService.recordThrow(stack, amount);
+	private void easySurvivalPack$keepInfiniteTridentInInventory(Inventory inventory, ItemStack stack) {
+		if (InfiniteTridentCraftingService.isThunderSkyTrident(stack)) {
+			InfiniteTridentCraftingService.recordThrow(stack, 1);
 		}
-		boolean thunderSky = InfiniteTridentCraftingService.isThunderSkyTrident(stack);
-		if (thunderSky) {
-			InfiniteTridentCraftingService.recordThrow(stack, amount);
+		if (!InfiniteTridentCraftingService.isInfiniteTrident(stack)) {
+			inventory.removeItem(stack);
 		}
-		return stack.consumeAndReturn(amount, user);
 	}
 }

@@ -1,0 +1,13 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"refmap": "easy_survival_pack.client.refmap.json",
+	"package": "com.easysurvivalpack.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"StatusDisplayHudMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}

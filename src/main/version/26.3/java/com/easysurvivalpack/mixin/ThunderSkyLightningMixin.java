@@ -6,6 +6,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -25,14 +26,16 @@ public abstract class ThunderSkyLightningMixin {
 			callback.cancel();
 			return;
 		}
+		if (InfiniteTridentCraftingService.isThunderSkyLightning(lightning)
+				&& lightning.getCause() instanceof ServerPlayer owner
+				&& InfiniteTridentCraftingService.shouldBlockThunderSkyPvpDamage(owner, entity)) {
+			callback.cancel();
+			return;
+		}
 		if (!InfiniteTridentCraftingService.shouldProtectThunderSkyOwner(lightning, entity)) {
 			return;
 		}
 
-		entity.setRemainingFireTicks(entity.getRemainingFireTicks() + 1);
-		if (entity.getRemainingFireTicks() == 0) {
-			entity.igniteForSeconds(8.0F);
-		}
 		callback.cancel();
 	}
 }

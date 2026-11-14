@@ -22,4 +22,14 @@ public abstract class InfiniteTridentBlockHitMixin {
 			InfiniteTridentCraftingService.startThunderSequence(trident, hit.getLocation(), null);
 		}
 	}
+
+	@Inject(method = "onHitBlock", at = @At("TAIL"))
+	private void easySurvivalPack$discardInfiniteTridentAfterBlockHit(
+			BlockHitResult hit,
+			CallbackInfo callback
+	) {
+		if ((Object) this instanceof ThrownTrident trident) {
+			InfiniteTridentCraftingService.discardInfiniteTridentOnImpact(trident);
+		}
+	}
 }

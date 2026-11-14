@@ -12,18 +12,16 @@ import com.easysurvivalpack.systems.inffirework.InfiniteFireworkCraftingService;
 import com.easysurvivalpack.systems.durability.DurabilityRepairService;
 import com.easysurvivalpack.systems.infpear.InfinitePearCraftingService;
 import com.easysurvivalpack.systems.inftrident.InfiniteTridentCraftingService;
-import com.easysurvivalpack.systems.totem.TotemCooldownService;
 
 @Mixin(ItemEntity.class)
 public abstract class TotemItemEntityMixin {
 	@Inject(method = "tick", at = @At("TAIL"))
-	private void easySurvivalPack$updateDroppedTotemCooldown(CallbackInfo callback) {
+	private void easySurvivalPack$processDroppedItem(CallbackInfo callback) {
 		ItemEntity itemEntity = (ItemEntity) (Object) this;
 		if (!(itemEntity.level() instanceof ServerLevel)) {
 			return;
 		}
 
-		TotemCooldownService.updateDroppedItem(itemEntity.getItem(), itemEntity);
 		InfinitePearCraftingService.tryCraft(itemEntity);
 		InfiniteFireworkCraftingService.tryCraft(itemEntity);
 		InfiniteTridentCraftingService.tryCraft(itemEntity);

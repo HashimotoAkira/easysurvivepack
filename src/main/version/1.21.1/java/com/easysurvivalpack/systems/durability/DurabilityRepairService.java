@@ -21,6 +21,7 @@ import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.level.block.ShulkerBoxBlock;
 
+import com.easysurvivalpack.compat.TrinketsSupport;
 import com.easysurvivalpack.systems.outofcombatrecovery.OutOfCombatRecoveryService;
 
 public final class DurabilityRepairService {
@@ -146,6 +147,12 @@ public final class DurabilityRepairService {
 		repairEquipmentSlot(player, EquipmentSlot.LEGS, inCombat, now);
 		repairEquipmentSlot(player, EquipmentSlot.FEET, inCombat, now);
 		repairEquipmentSlot(player, EquipmentSlot.OFFHAND, inCombat, now);
+		TrinketsSupport.forEachEquipped(player, (stack, setStack) -> {
+			StackUpdate update = repairStack(stack, inCombat, true, now);
+			if (update.changed()) {
+				setStack.accept(update.stack());
+			}
+		});
 		repairContainer(player.getEnderChestInventory(), inCombat, now);
 	}
 
