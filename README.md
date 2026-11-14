@@ -3,7 +3,7 @@
 Server-authoritative Fabric mod porting survival mechanics from the Easy Survival Pack datapack.
 
 ![Mod version](https://img.shields.io/badge/version-0.3.0-blue)
-![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1-brightgreen)
+![Minecraft](https://img.shields.io/badge/Minecraft-1.21.1%20%7C%2026.3-brightgreen)
 ![Fabric](https://img.shields.io/badge/loader-Fabric-orange)
 ![Project status](https://img.shields.io/badge/status-in%20development-yellow)
 
@@ -12,13 +12,15 @@ Server-authoritative Fabric mod porting survival mechanics from the Easy Surviva
 | | |
 |---|---|
 | Mod version | `0.3.0` |
-| Minecraft | `1.21.1` |
-| Fabric Loader | `0.16.14` |
-| Fabric API used for builds | `0.116.18+1.21.1` |
-| Java | `21` |
+| Minecraft | `1.21.1`, `26.3` |
+| Fabric Loader | `0.16.14`, `0.20.1` |
+| Fabric API used for builds | `0.116.18+1.21.1`, `0.166.0+26.3` |
+| Java | `21`, `25` |
 | Release status | In development; no version tags have been published |
 
 This is an ongoing port, not a feature-complete replacement for the datapack. The version is set in `gradle.properties`. When a release is published, its version should match that value.
+
+Each GitHub release contains a JAR for every supported Minecraft version (`1.21.1` and `26.3`). Run `release.cmd` to build both variants and publish them together under one mod-version tag; use `release.cmd --dry-run` to check the release assets without publishing.
 
 ## Features
 

@@ -3,7 +3,6 @@ setlocal
 cd /d "%~dp0"
 
 set "DRY_RUN=0"
-set "MC_VERSION="
 
 :parse_args
 if "%~1"=="" goto args_done
@@ -12,50 +11,25 @@ if /I "%~1"=="--dry-run" (
 	shift
 	goto parse_args
 )
-if not defined MC_VERSION (
-	set "MC_VERSION=%~1"
-	shift
-	goto parse_args
-)
 echo Unknown argument: %~1
 goto usage_error
 
 :args_done
-if defined MC_VERSION goto validate_version
-
-echo Select Minecraft version to release:
-echo   1^) Minecraft 1.21.1  ^(Java 21^)
-echo   2^) Minecraft 26.3    ^(Java 25^)
-choice /c 12 /n /m "Choose [1/2]: "
-if errorlevel 2 (
-	set "MC_VERSION=26.3"
-) else (
-	set "MC_VERSION=1.21.1"
+set "MOD_VERSION="
+for /f "tokens=1,* delims==" %%A in ('findstr /b /c:"mod_version=" gradle.properties') do set "MOD_VERSION=%%B"
+if not defined MOD_VERSION (
+	echo Could not read mod_version from gradle.properties.
+	exit /b 1
 )
+set "RELEASE_TAG=v%MOD_VERSION%"
 
-:validate_version
-if "%MC_VERSION%"=="1.21.1" goto configure_1211
-if "%MC_VERSION%"=="26.3" goto configure_263
-echo Unsupported Minecraft version: %MC_VERSION%
-goto usage_error
+if "%DRY_RUN%"=="1" goto select_artifacts
 
-:configure_1211
-set "LOADER_VERSION=0.16.14"
-set "FABRIC_API_VERSION=0.116.18+1.21.1"
-goto check_gh
-
-:configure_263
-set "LOADER_VERSION=0.20.1"
-set "FABRIC_API_VERSION=0.166.0+26.3"
-
-:check_gh
 where gh >nul 2>&1
 if errorlevel 1 (
 	echo GitHub CLI "gh" was not found. Install it and authenticate with "gh auth login".
 	exit /b 1
 )
-
-if "%DRY_RUN%"=="1" goto select_artifact
 
 gh auth status >nul 2>&1
 if errorlevel 1 (
@@ -77,25 +51,6 @@ if defined HAS_CHANGES (
 	exit /b 1
 )
 
-echo Building Easy Survival Pack for Minecraft %MC_VERSION%...
-call gradlew.bat build --no-daemon "-Pminecraft_version=%MC_VERSION%" "-Ploader_version=%LOADER_VERSION%" "-Pfabric_api_version=%FABRIC_API_VERSION%"
-if errorlevel 1 (
-	echo Build failed; no release was published.
-	exit /b 1
-)
-
-:select_artifact
-set "RELEASE_JAR="
-for /f "delims=" %%F in ('dir /b /a-d "dist\EasySurvivalPack-*+mc%MC_VERSION%.jar" 2^>nul') do set "RELEASE_JAR=%%F"
-if not defined RELEASE_JAR (
-	echo No Minecraft %MC_VERSION% JAR was found in dist.
-	if "%DRY_RUN%"=="1" echo Run build-mod.bat %MC_VERSION% first, or run release.cmd without --dry-run.
-	exit /b 1
-)
-
-set "RELEASE_TAG=%RELEASE_JAR:EasySurvivalPack-=%"
-set "RELEASE_TAG=%RELEASE_TAG:.jar=%"
-set "RELEASE_TAG=v%RELEASE_TAG%"
 set "RELEASE_COMMIT="
 for /f "delims=" %%C in ('git rev-parse HEAD 2^>nul') do set "RELEASE_COMMIT=%%C"
 if not defined RELEASE_COMMIT (
@@ -103,9 +58,32 @@ if not defined RELEASE_COMMIT (
 	exit /b 1
 )
 
+echo Building Easy Survival Pack for Minecraft 1.21.1...
+call gradlew.bat build --no-daemon "-Pminecraft_version=1.21.1" "-Ploader_version=0.16.14" "-Pfabric_api_version=0.116.18+1.21.1"
+if errorlevel 1 goto build_failed
+
+echo Building Easy Survival Pack for Minecraft 26.3...
+call gradlew.bat build --no-daemon "-Pminecraft_version=26.3" "-Ploader_version=0.20.1" "-Pfabric_api_version=0.166.0+26.3"
+if errorlevel 1 goto build_failed
+
+:select_artifacts
+set "RELEASE_JAR_1211=EasySurvivalPack-%MOD_VERSION%+mc1.21.1.jar"
+set "RELEASE_JAR_263=EasySurvivalPack-%MOD_VERSION%+mc26.3.jar"
+if not exist "dist\%RELEASE_JAR_1211%" (
+	echo No Minecraft 1.21.1 JAR was found in dist.
+	if "%DRY_RUN%"=="1" echo Run build-mod.bat all first, or run release.cmd without --dry-run.
+	exit /b 1
+)
+if not exist "dist\%RELEASE_JAR_263%" (
+	echo No Minecraft 26.3 JAR was found in dist.
+	if "%DRY_RUN%"=="1" echo Run build-mod.bat all first, or run release.cmd without --dry-run.
+	exit /b 1
+)
+
 echo Release tag: %RELEASE_TAG%
-echo Artifact:    dist\%RELEASE_JAR%
-echo Target:      %RELEASE_COMMIT%
+echo Artifacts:
+echo   dist\%RELEASE_JAR_1211%
+echo   dist\%RELEASE_JAR_263%
 if "%DRY_RUN%"=="1" (
 	echo Dry run complete; nothing was published.
 	exit /b 0
@@ -118,19 +96,24 @@ if not errorlevel 1 (
 )
 
 echo Publishing GitHub Release...
-gh release create "%RELEASE_TAG%" "dist\%RELEASE_JAR%" ^
+gh release create "%RELEASE_TAG%" "dist\%RELEASE_JAR_1211%" "dist\%RELEASE_JAR_263%" ^
 	--title "Easy Survival Pack %RELEASE_TAG%" ^
 	--generate-notes ^
-	--target "%RELEASE_COMMIT%"
+	--target "%RELEASE_COMMIT%" ^
+	--latest
 if errorlevel 1 (
 	echo Release creation failed.
 	exit /b 1
 )
 
-echo Release published successfully.
+echo Release published successfully with both Minecraft versions.
 exit /b 0
 
+:build_failed
+echo Build failed; no release was published.
+exit /b 1
+
 :usage_error
-echo Usage: release.cmd [1.21.1^|26.3] [--dry-run]
-echo Run without a version to choose from an interactive menu.
+echo Usage: release.cmd [--dry-run]
+echo Builds Minecraft 1.21.1 and 26.3, then publishes both JARs in one GitHub Release.
 exit /b 2
